@@ -22,4 +22,6 @@ void gemm_cublas(float *A, float *B, float *C, int M, int N, int K);
 
 __global__ void gemm_naive(float *A, float *B, float *C, int M, int N, int K);
 
+__global__ void gemm_coalesced(float *A, float *B, float *C, int M, int N, int K);
+
 #endif

@@ -70,14 +70,30 @@ void gemm_cublas(float *d_A, float *d_B, float *d_C, int M, int N, int K) {
     
 }
 
+// version 1: naive implementation
 __global__ void gemm_naive(float *A, float *B, float *C, int M, int N, int K) {
-    int x = blockIdx.x * blockDim.x + threadIdx.x;
-    int y = blockIdx.y * blockDim.y + threadIdx.y;
+    int row = blockIdx.x * blockDim.x + threadIdx.x;
+    int col = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (x < M && y < N) {
+    if (row < M && col < N) {
         float sum = 0.0f;
         for (int k = 0; k < K; k++) 
-            sum += A[x * K + k] * B[k * N +y];
-        C[x * N + y] = sum;
+            sum += A[row * K + k] * B[k * N +col];
+        C[row * N + col] = sum;
+    }
+}
+
+
+// version 2: coalesced memory access
+__global__ void gemm_coalesced(float *A, float *B, float *C, int M, int N, int K) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row < M && col < N) {
+        float sum = 0.0;
+        for (int k = 0; k < K; k++) {
+            sum += A[row * K + k] * B[k * N + col];
+        }
+        C[row * N + col] = sum;
     }
 }
