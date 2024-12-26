@@ -97,3 +97,38 @@ __global__ void gemm_coalesced(float *A, float *B, float *C, int M, int N, int K
         C[row * N + col] = sum;
     }
 }
+
+// version 3: blocking (tiling) on shared memory
+// block_size must equals blockDim.x equals blockDim.y
+__global__ void gemm_shared_mem_blocking(float *A, float *B, float *C, int M, int N, int K) {
+    __shared__ float s_A[BLOCK_SIZE * BLOCK_SIZE];
+    __shared__ float s_B[BLOCK_SIZE * BLOCK_SIZE];
+
+    int row_in_shared_mem = threadIdx.y;
+    int col_in_shared_mem = threadIdx.x;
+
+    float* A_ptr = A + blockIdx.y * BLOCK_SIZE * K;
+    float* B_ptr = B + blockIdx.x * BLOCK_SIZE;
+    float* C_ptr = C + blockIdx.y * BLOCK_SIZE * N + blockIdx.x * BLOCK_SIZE;
+
+    float tmp = 0.0;
+    for (int s_block_idx = 0; s_block_idx < K; s_block_idx += BLOCK_SIZE) {
+        // load data from global memory to shared memory
+        s_A[row_in_shared_mem * BLOCK_SIZE + col_in_shared_mem] = A_ptr[row_in_shared_mem * K + col_in_shared_mem];
+        s_B[row_in_shared_mem * BLOCK_SIZE + col_in_shared_mem] = B_ptr[row_in_shared_mem * N + col_in_shared_mem];
+
+        __syncthreads();
+
+        A_ptr += BLOCK_SIZE;
+        B_ptr += BLOCK_SIZE * N;
+
+        // compute
+        for (int k = 0; k < BLOCK_SIZE; k++) {
+            tmp += s_A[row_in_shared_mem * BLOCK_SIZE + k] * s_B[k * BLOCK_SIZE + col_in_shared_mem];
+        }
+
+        __syncthreads();
+    }
+    
+    C_ptr[row_in_shared_mem * BLOCK_SIZE + col_in_shared_mem] = tmp;
+}

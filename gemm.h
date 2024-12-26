@@ -9,6 +9,8 @@
 #include <cublas_v2.h>
 #include <device_launch_parameters.h>
 
+#define BLOCK_SIZE 32
+
 using gemm_func = void (*)(float *, float *, float *, int, int, int);
 
 void checkCudaError(cudaError_t err, const char *msg);
@@ -23,5 +25,7 @@ void gemm_cublas(float *A, float *B, float *C, int M, int N, int K);
 __global__ void gemm_naive(float *A, float *B, float *C, int M, int N, int K);
 
 __global__ void gemm_coalesced(float *A, float *B, float *C, int M, int N, int K);
+
+__global__ void gemm_shared_mem_blocking(float *A, float *B, float *C, int M, int N, int K);
 
 #endif
