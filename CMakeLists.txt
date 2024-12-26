@@ -24,6 +24,7 @@ set(SOURCES
     gemm.cu
     utils.cpp
     main.cpp
+    gemm_v3_2d_block_tiling_1d_thread_tiling.cu
 )
 
 # Define the target executable name
