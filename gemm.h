@@ -31,4 +31,5 @@ __global__ void gemm_shared_mem_blocking(float *A, float *B, float *C, int M, in
 
 void launch_gemm_v3_2d_block_tiling_1d_thread_tiling(float *A, float *B, float *C, int M, int N, int K);
 
+void launch_gemm_v4_2d_block_tiling_2d_thread_tiling(float *A, float *B, float *C, int M, int N, int K);
 #endif

@@ -19,13 +19,9 @@ include_directories(${CUDA_INCLUDE_DIRS})
 # Add CUDA library paths
 link_directories(${CUDA_LIBRARY_DIRS})
 
-# Add source files for the project
-set(SOURCES
-    gemm.cu
-    utils.cpp
-    main.cpp
-    gemm_v3_2d_block_tiling_1d_thread_tiling.cu
-)
+# Add all source files for the project
+file(GLOB SOURCES "*.cpp" "*.cu")
+
 
 # Define the target executable name
 add_executable(my_gemm ${SOURCES})
