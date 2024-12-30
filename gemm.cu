@@ -51,13 +51,13 @@ void run_perf_test(float *A, float *B, float *C, int M, int N, int K, int warmup
 
 void run_perf_test_v1(float *A, float *B, float *C, int M, int N, int K, int warmup, int repeat, std::string version, gemm_func func) {
     float *d_A, *d_B, *d_C;
-    cudaMalloc(&d_A, M * K * sizeof(float));
-    cudaMalloc(&d_B, K * N * sizeof(float));
-    cudaMalloc(&d_C, M * N * sizeof(float));
+    CHECK_CUDA_ERROR(cudaMalloc(&d_A, M * K * sizeof(float)));
+    CHECK_CUDA_ERROR(cudaMalloc(&d_B, K * N * sizeof(float)));
+    CHECK_CUDA_ERROR(cudaMalloc(&d_C, M * N * sizeof(float)));
 
-    cudaMemcpy(d_A, A, M * K * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_B, B, K * N * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_C, C, M * N * sizeof(float), cudaMemcpyHostToDevice);
+    CHECK_CUDA_ERROR(cudaMemcpy(d_A, A, M * K * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK_CUDA_ERROR(cudaMemcpy(d_B, B, K * N * sizeof(float), cudaMemcpyHostToDevice));
+    CHECK_CUDA_ERROR(cudaMemcpy(d_C, C, M * N * sizeof(float), cudaMemcpyHostToDevice));
 
     for (int i = 0; i < warmup; i++) {
         func(d_A, d_B, d_C, M, N, K);
@@ -74,6 +74,7 @@ void run_perf_test_v1(float *A, float *B, float *C, int M, int N, int K, int war
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
 
+    CHECK_CUDA_ERROR(cudaGetLastError());
     CHECK_CUDA_ERROR(cudaDeviceSynchronize());
 
     float ms;
@@ -82,7 +83,7 @@ void run_perf_test_v1(float *A, float *B, float *C, int M, int N, int K, int war
 
     printf("Test %s: average time of %d runs %.6f ms, %.6f Tflops, percentage of peak %.6f\n", version.c_str(), repeat, avg_time, 2.0 * M * N * K / avg_time / 1e9, 2.0 * M * N * K / avg_time / 1e9 / 19.5 * 100);
 
-    cudaMemcpy(C, d_C, M * N * sizeof(float), cudaMemcpyDeviceToHost);
+    CHECK_CUDA_ERROR(cudaMemcpy(C, d_C, M * N * sizeof(float), cudaMemcpyDeviceToHost));
 
     cudaFree(d_A);
     cudaFree(d_B);
