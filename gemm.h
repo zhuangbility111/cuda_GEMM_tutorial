@@ -34,4 +34,6 @@ void launch_gemm_v3_2d_block_tiling_1d_thread_tiling(float *A, float *B, float *
 void launch_gemm_v4_2d_block_tiling_2d_thread_tiling(float *A, float *B, float *C, int M, int N, int K);
 
 void launch_gemm_v5_2d_block_tiling_2d_thread_tiling_vectorized_transposed(float *A, float *B, float *C, int M, int N, int K);
+
+void launch_gemm_v6_2d_block_tiling_2d_warp_tiling_2d_thread_tiling_vectorized_transposed(float *A, float *B, float *C, int M, int N, int K);
 #endif

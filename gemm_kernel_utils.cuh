@@ -15,6 +15,10 @@ do {                                                                \
     }                                                               \
 } while (0)
 
+#define CHECK_LAST_CUDA_ERROR() check_cuda_last(__FILE__, __LINE__)
+
+void check_cuda_last(const char* const file, const int line);
+
 // load data from global memory to shared memory
 template<int BLOCK_TILE_SIZE_X, int BLOCK_TILE_SIZE_Y, int BLOCK_TILE_SIZE_K, int NUM_THREADS_PER_BLOCK>
 __device__ void load_data_from_global_mem_to_shared_mem(float *A, float *B, 

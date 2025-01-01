@@ -20,6 +20,7 @@ __global__ void gemm_v5_2d_block_tiling_2d_thread_tiling_vectorized_transposed(f
     constexpr int NUM_THREADS_PER_BLOCK = (BLOCK_TILE_SIZE_X * BLOCK_TILE_SIZE_Y) / (THREAD_TILE_SIZE_X * THREAD_TILE_SIZE_Y);
     constexpr int LEN_VECTOR = sizeof(int4) / sizeof(float);
     constexpr int VECTORIZED_THREAD_TILE_SIZE_X = THREAD_TILE_SIZE_X / LEN_VECTOR;
+    constexpr int VECTORIZED_THREAD_TILE_SIZE_Y = THREAD_TILE_SIZE_Y / LEN_VECTOR;
     static_assert(THREAD_TILE_SIZE_X % LEN_VECTOR == 0);
 
     for (int shared_mem_tile_idx = 0; shared_mem_tile_idx < num_shared_mem_tiles; shared_mem_tile_idx++) {
@@ -35,8 +36,12 @@ __global__ void gemm_v5_2d_block_tiling_2d_thread_tiling_vectorized_transposed(f
             int const A_reg_tile_row_idx = thread_linear_idx / (BLOCK_TILE_SIZE_X / THREAD_TILE_SIZE_X) * THREAD_TILE_SIZE_Y;
             int const A_reg_tile_col_idx = k_idx;
 
-            for (int reg_tile_row_idx = 0; reg_tile_row_idx < THREAD_TILE_SIZE_Y; reg_tile_row_idx++) {
-                A_reg_tile[reg_tile_row_idx] = A_shared_mem_tile_transposed[A_reg_tile_col_idx][A_reg_tile_row_idx + reg_tile_row_idx];
+            // for (int reg_tile_row_idx = 0; reg_tile_row_idx < THREAD_TILE_SIZE_Y; reg_tile_row_idx++) {
+            //     A_reg_tile[reg_tile_row_idx] = A_shared_mem_tile_transposed[A_reg_tile_col_idx][A_reg_tile_row_idx + reg_tile_row_idx];
+            // }
+            for (int reg_tile_row_idx = 0; reg_tile_row_idx < VECTORIZED_THREAD_TILE_SIZE_Y; reg_tile_row_idx++) {
+                *reinterpret_cast<int4*>(&A_reg_tile[reg_tile_row_idx * LEN_VECTOR]) = 
+                    *reinterpret_cast<int4*>(&A_shared_mem_tile_transposed[A_reg_tile_col_idx][A_reg_tile_row_idx + reg_tile_row_idx * LEN_VECTOR]);
             }
 
             // load B from shared memory to register, using vectorized load
